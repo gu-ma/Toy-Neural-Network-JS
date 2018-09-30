@@ -6,6 +6,8 @@ function loadMNIST(callback) {
     test_images: 't10k-images-idx3-ubyte',
     test_labels: 't10k-labels-idx1-ubyte',
   };
+  
+  // Load files
   return Promise.all(Object.keys(files).map(async file => {
     mnist[file] = await loadFile(files[file])
   }))
@@ -13,6 +15,7 @@ function loadMNIST(callback) {
 }
 
 async function loadFile(file) {
+
   let buffer = await fetch(file).then(r => r.arrayBuffer());
   let headerCount = 4;
   let headerView = new DataView(buffer, 0, 4 * headerCount);
@@ -20,6 +23,8 @@ async function loadFile(file) {
 
   // Get file type from the magic number
   let type, dataLength;
+
+  // Check if label or images and save length
   if(headers[0] == 2049) {
     type = 'label';
     dataLength = 1;
@@ -31,7 +36,10 @@ async function loadFile(file) {
     throw new Error("Unknown file type " + headers[0])
   }
 
+  // Assign and return data
   let data = new Uint8Array(buffer, headerCount * 4);
+
+  // If it's an image we return the whole array
   if(type == 'image') {
     dataArr = [];
     for(let i = 0; i < headers[1]; i++) {
@@ -39,5 +47,6 @@ async function loadFile(file) {
     }
     return dataArr;
   }
+
   return data;
 }
